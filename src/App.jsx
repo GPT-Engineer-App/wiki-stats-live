@@ -56,6 +56,13 @@ function App() {
       .replace(/\b\w/g, char => char.toUpperCase());
   };
 
+  useEffect(() => {
+    if (stats && prevStats) {
+      // Trigger re-render to update visual indicators
+      setStats({ ...stats });
+    }
+  }, [stats, prevStats]);
+
   return (
     <div className="App">
       <Card>
