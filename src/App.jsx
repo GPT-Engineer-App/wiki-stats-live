@@ -12,12 +12,33 @@ import "./App.css";
 function App() {
   const [stats, setStats] = useState(null);
   const [error, setError] = useState(null);
+  const [countdown, setCountdown] = useState(10);
 
-  useEffect(() => {
+  const fetchStats = () => {
     fetch("https://en.wikipedia.org/w/api.php?action=query&format=json&meta=siteinfo&siprop=statistics&origin=*")
       .then(response => response.json())
-      .then(data => setStats(data.query.statistics))
+      .then(data => {
+        setStats(data.query.statistics);
+        setCountdown(10); // Reset countdown
+      })
       .catch(error => setError(error));
+  };
+
+  useEffect(() => {
+    fetchStats(); // Initial fetch
+
+    const interval = setInterval(() => {
+      fetchStats();
+    }, 10000); // Fetch every 10 seconds
+
+    const countdownInterval = setInterval(() => {
+      setCountdown(prev => (prev > 0 ? prev - 1 : 10));
+    }, 1000); // Countdown every second
+
+    return () => {
+      clearInterval(interval);
+      clearInterval(countdownInterval);
+    };
   }, []);
 
   return (
@@ -41,12 +62,14 @@ function App() {
               <p>Users: {stats.users}</p>
               <p>Active Users: {stats.activeusers}</p>
               <p>Admins: {stats.admins}</p>
+              <p>Next refresh in: {countdown} seconds</p>
             </div>
           ) : (
             <p>Loading...</p>
           )}
         </CardContent>
       </Card>
+      <Button onClick={fetchStats} className="mt-4">Refresh Now</Button>
     </div>
   );
 }
