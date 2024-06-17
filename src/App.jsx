@@ -20,13 +20,19 @@ function App() {
     fetch("https://en.wikipedia.org/w/api.php?action=query&format=json&meta=siteinfo&siprop=statistics&origin=*")
       .then(response => response.json())
       .then(data => {
+        const currentStats = data.query.statistics;
         setPrevStats(stats);
-        setStats(data.query.statistics);
+        setStats(currentStats);
+        localStorage.setItem('prevStats', JSON.stringify(stats));
       })
       .catch(error => setError(error));
   };
 
   useEffect(() => {
+    const storedPrevStats = localStorage.getItem('prevStats');
+    if (storedPrevStats) {
+      setPrevStats(JSON.parse(storedPrevStats));
+    }
     fetchStats(); // Initial fetch
 
     const interval = setInterval(() => {
