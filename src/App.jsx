@@ -7,19 +7,21 @@ import {
 } from "@/components/ui/card.jsx";
 import { Button } from "@/components/ui/button.jsx";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert.jsx";
+import { ArrowUp, ArrowDown, Minus } from "lucide-react";
 import "./App.css";
 
 function App() {
   const [stats, setStats] = useState(null);
   const [error, setError] = useState(null);
   const [countdown, setCountdown] = useState(10);
+  const [prevStats, setPrevStats] = useState(null);
 
   const fetchStats = () => {
     fetch("https://en.wikipedia.org/w/api.php?action=query&format=json&meta=siteinfo&siprop=statistics&origin=*")
       .then(response => response.json())
       .then(data => {
+        setPrevStats(stats);
         setStats(data.query.statistics);
-        setCountdown(10); // Reset countdown
       })
       .catch(error => setError(error));
   };
@@ -41,6 +43,13 @@ function App() {
     };
   }, []);
 
+  const getStatChange = (current, previous) => {
+    if (previous === null) return null;
+    if (current > previous) return { color: "text-green-600", icon: <ArrowUp /> };
+    if (current < previous) return { color: "text-red-600", icon: <ArrowDown /> };
+    return { color: "text-gray-600", icon: <Minus /> };
+  };
+
   return (
     <div className="App">
       <Card>
@@ -54,15 +63,27 @@ function App() {
               <AlertDescription>{error.message}</AlertDescription>
             </Alert>
           ) : stats ? (
-            <div>
-              <p>Articles: {stats.articles}</p>
-              <p>Pages: {stats.pages}</p>
-              <p>Edits: {stats.edits}</p>
-              <p>Images: {stats.images}</p>
-              <p>Users: {stats.users}</p>
-              <p>Active Users: {stats.activeusers}</p>
-              <p>Admins: {stats.admins}</p>
-              <p>Next refresh in: {countdown} seconds</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {Object.keys(stats).map((key) => {
+                const change = getStatChange(stats[key], prevStats ? prevStats[key] : null);
+                return (
+                  <Card key={key} className="flex flex-col items-center">
+                    <CardTitle>{key.charAt(0).toUpperCase() + key.slice(1)}</CardTitle>
+                    <CardContent className="flex items-center">
+                      <span className="text-2xl">{stats[key]}</span>
+                      {change && (
+                        <span className={`ml-2 ${change.color}`}>
+                          {change.icon}
+                        </span>
+                      )}
+                    </CardContent>
+                  </Card>
+                );
+              })}
+              <Card className="flex flex-col items-center">
+                <CardTitle>Next refresh in</CardTitle>
+                <CardContent className="text-2xl">{countdown} seconds</CardContent>
+              </Card>
             </div>
           ) : (
             <p>Loading...</p>
