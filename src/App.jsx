@@ -50,6 +50,12 @@ function App() {
     return { color: "text-gray-600", icon: <Minus /> };
   };
 
+  const formatTitle = (title) => {
+    return title
+      .replace(/-/g, ' ')
+      .replace(/\b\w/g, char => char.toUpperCase());
+  };
+
   return (
     <div className="App">
       <Card>
@@ -64,11 +70,11 @@ function App() {
             </Alert>
           ) : stats ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {Object.keys(stats).map((key) => {
+              {Object.keys(stats).filter(key => key !== 'jobs' && key !== 'queued-massmessages').map((key) => {
                 const change = getStatChange(stats[key], prevStats ? prevStats[key] : null);
                 return (
                   <Card key={key} className="flex flex-col items-center">
-                    <CardTitle>{key.charAt(0).toUpperCase() + key.slice(1)}</CardTitle>
+                    <CardTitle>{formatTitle(key)}</CardTitle>
                     <CardContent className="flex items-center">
                       <span className="text-2xl">{stats[key]}</span>
                       {change && (
